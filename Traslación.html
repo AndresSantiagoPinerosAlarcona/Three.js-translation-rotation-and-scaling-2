@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Traslación</title>
+        <style>
+            html, body { margin: 0; padding: 0; overflow: hidden; }
+            #info {
+                position: absolute;
+                padding: 10px;
+                width: 100%;
+                text-align: center;
+                color: #FFFFFF;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="info">TRASLACIÓN<br/>
+        	<br/>
+            Use la tecla "8" y "2" moverse en el eje Z .<br/>
+			Use la tecla "4" y "6" moverse en el eje X .<br/>
+			Use la tecla "1" y "9" moverse en el eje Y .<br/>
+
+            (Use el teclado numerico)<br/>
+        </div>
+    <script src="js/three.min.js"></script>
+    <script>
+		var scene, aspect, camera, renderer;
+		var geometry;
+		var object;
+		var startTime = Date.now();
+				// Se inicializan las variables que serán ocupadas por las teclas 
+		var upArrow = false; 
+		var downArrow = false;
+		var leftArrow = false;
+		var rightArrow = false;
+		var leftArrow2 = false;
+		var rightArrow2 = false;
+		var xAxis = true;
+		var yAxis = false;
+		var zAxis = false;
+		
+		init();
+		animate();
+	
+		function init(){
+			scene = new THREE.Scene();
+			aspect = window.innerWidth / window.innerHeight;
+			camera = new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000);
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+				  			
+			//EVENTOS DE TECLADO
+			
+			var onKeyDown = function ( event ) { // si se oprime una tecla la variable la variable se volverá verdadera.
+				switch ( event.keyCode ) {
+					case 104: //104 representa la tecla "8" del teclado numerico
+						upArrow = true;
+						break;
+					case 98: //98 representa la tecla "2" del teclado numerico
+						downArrow = true;
+						break;
+					case 100: //100 representa la tecla "4" del teclado numerico
+						leftArrow = true;
+						break;
+					case 102: //102 representa la tecla "6" del teclado numerico
+						rightArrow = true;
+						break;	
+					case 105: //105 representa la tecla "9" del teclado numerico
+						leftArrow2 = true;
+						break;
+					case 97: //97 representa la tecla "1" del teclado numerico
+						rightArrow2 = true;
+						break;	
+
+				}
+			};	  
+		  			
+			var onKeyUp = function ( event ) {// si se deja de oprimir una tecla la variable la variable se volverá falsa.
+				switch ( event.keyCode ) {//<------ Convierte las letras pulsadas a código interno 
+					case 104: //104 representa la tecla "8" del teclado numerico
+						upArrow = false;
+						break;
+					case 98: //98 representa la tecla "2" del teclado numerico
+						downArrow = false;
+						break;
+					case 100: //100 representa la tecla "4" del teclado numerico
+						leftArrow = false;
+						break;
+					case 102: //102 representa la tecla "6" del teclado numerico
+						rightArrow = false;
+						break
+					case 105: //105 representa la tecla "9" del teclado numerico
+						leftArrow2 = false;
+						break;
+					case 97: //97 representa la tecla "1" del teclado numerico
+						rightArrow2 = false;
+						break
+				}
+			};	  	
+			
+			document.addEventListener( 'keydown', onKeyDown, false );
+			document.addEventListener( 'keyup', onKeyUp, false );
+			
+			//ELEMENTOS DE ESCENA
+							  
+			var size = 10;
+			var arrowSize = 1;
+			var divisions = size;
+			var origin = new THREE.Vector3( 0, 0, 0 );
+			var x = new THREE.Vector3( 1, 0, 0 );
+			var y = new THREE.Vector3( 0, 1, 0 );
+		  	var z = new THREE.Vector3( 0, 0, 1 );
+		  	//Se le asignan colores a las vectores centrados en el origen, a las grillas y a las caras del cubo 
+			var color1 = new THREE.Color( 0xFFFFFF );
+		  	var color2 = new THREE.Color( 0x333333 );
+		  	var colorR = new THREE.Color( 0xAA0000 );
+		  	var colorG = new THREE.Color( 0x00AA00 );
+		  	var colorB = new THREE.Color( 0x0000AA );
+			var colorRd = new THREE.Color( 0xF1FF00 );
+		  	var colorGd = new THREE.Color( 0x000BFF );
+		  	var colorBd = new THREE.Color( 0xFF0000 );
+		  
+		  	//CREAR LAS GRILLAS PARA EL ESCENARIO
+		  	var axesHelper = new THREE.AxesHelper( size );
+		  	var gridHelperXY = new THREE.GridHelper( size, divisions);
+		  	var gridHelperXZ = new THREE.GridHelper( size, divisions, color2, color2 );
+		  	var gridHelperYZ = new THREE.GridHelper( size, divisions, color2, color2 );
+            
+            //ROTARLAS PARA QUE QUEDEN EN EL ESPACIO ADECUADO
+            gridHelperXY.rotateOnWorldAxis ( x, THREE.Math.degToRad(90) );
+            gridHelperXZ.rotateOnWorldAxis ( y, THREE.Math.degToRad(90) );
+            gridHelperYZ.rotateOnWorldAxis ( z, THREE.Math.degToRad(90) );
+            
+            //CREAR LAS FLECHAS QUE INDICAN LOS EJES DE COORDENADAS 3D
+            var arrowX = new THREE.ArrowHelper( x, origin, arrowSize, colorR );
+            var arrowY = new THREE.ArrowHelper( y, origin, arrowSize, colorG );
+            var arrowZ = new THREE.ArrowHelper( z, origin, arrowSize, colorB );
+			
+			//CREAR LAS GEOMETRÍAS
+			geometry = new THREE.BoxGeometry( 1, 1, 1 );
+
+			//<------- BORRAR PARA QUITAR EL COLOR 
+			for ( var i = 0; i < geometry.faces.length; i ++ ) {
+				switch(i){
+					case 0: case 1: geometry.faces[ i ].color = colorRd; break;
+					case 2: case 3: geometry.faces[ i ].color = colorRd; break;
+					case 4: case 5: geometry.faces[ i ].color = colorGd; break;
+					case 6: case 7: geometry.faces[ i ].color = colorGd; break;
+					case 8: case 9: geometry.faces[ i ].color = colorBd; break;
+					case 10: case 11: geometry.faces[ i ].color = colorBd; break;
+				}				
+			}
+
+			//<------- BORRAR PARA QUITAR EL COLOR 
+			
+			//CREAR LOS MATERIALES
+			var material = new THREE.MeshBasicMaterial( { color: color1, vertexColors: THREE.FaceColors } );
+			
+			//CREAR LOS OBJETOS
+			object = new THREE.Mesh( geometry, material );
+									
+		  	//AGREGAR A LA ESCENA
+            scene.add( gridHelperXZ );
+		  	scene.add( arrowX );	
+		  	scene.add( arrowY );	
+		  	scene.add( arrowZ );	
+			scene.add( object );
+			
+			//MOVER LA CAMARA
+			camera.position.x = 5;
+			camera.position.y = 10;	 
+		  	camera.position.z = 10;			
+		  	camera.lookAt( origin );
+			}
+    
+    function animate() {
+        render();
+        requestAnimationFrame( animate );
+    }
+    
+    function render(){//Se renderiza en tiempo real  
+        var dtime = Date.now()-startTime;
+		var tx=0, ty=0, tz=0;	//Se inicializa el cubo en una posición 0,0,0
+		var sc = 1;				
+		var theta=0;			
+		
+		if(upArrow) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=0; ty=0.1; tz=0;
+		}
+		if(downArrow) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=0; ty=-0.1; tz=0;
+		}
+		
+		if(leftArrow) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=-0.1; ty=0; tz=0;
+		}
+		if(rightArrow) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=0.1; ty=0; tz=0;
+		}
+
+		if(leftArrow2) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=0; ty=0; tz=-0.1;
+		}
+		if(rightArrow2) {//Cuando cambie la variable de posición a verdadero se aplicara un aumento en la posición
+			tx=0; ty=0; tz=0.1;
+		}
+		
+		
+		
+		//MATRIZ DE TRASLACIÓN
+		var t = new THREE.Matrix4();//La matriz de posición 
+		t.set( 	1, 0, 0, tx,
+				0, 1, 0, ty, 
+				0, 0, 1, tz,
+				0, 0, 0, 1	);
+
+		object.applyMatrix(t);
+
+		object.elementsNeedUpdate = true;
+		//objeto2.elementsNeedUpdate = true;
+        camera.lookAt( 0, 0, 0 );
+        renderer.render( scene, camera );
+    }
+    </script>
+  </body>
+</html>
